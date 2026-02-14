@@ -5,21 +5,16 @@ import { config } from "../package.json";
 const basicTool = new BasicTool();
 
 if (!basicTool.getGlobal("Zotero")[config.addonInstance]) {
-  // Set global variables
   _globalThis.Zotero = basicTool.getGlobal("Zotero");
   _globalThis.ZoteroPane = basicTool.getGlobal("ZoteroPane");
   _globalThis.Zotero_Tabs = basicTool.getGlobal("Zotero_Tabs");
   _globalThis.window = basicTool.getGlobal("window");
   _globalThis.document = basicTool.getGlobal("document");
   _globalThis.addon = new Addon();
-  _globalThis.ztoolkit = addon.data.ztoolkit;
-  ztoolkit.basicOptions.log.prefix = `[${config.addonName}]`;
-  ztoolkit.basicOptions.log.disableConsole = addon.data.env === "production";
-  ztoolkit.UI.basicOptions.ui.enableElementJSONLog = false
-    // addon.data.env === "development";
-  ztoolkit.basicOptions.log.disableConsole = true;
-  ztoolkit.UI.basicOptions.ui.enableElementJSONLog = false;
-  Zotero.ZoteroStyle = addon;
-  // Trigger addon hook for initialization
+
+  const zoteroGlobal = _globalThis.Zotero as typeof Zotero;
+  zoteroGlobal[config.addonInstance] = addon;
+  zoteroGlobal.__addonInstance__ = addon;
+
   addon.hooks.onStartup();
 }

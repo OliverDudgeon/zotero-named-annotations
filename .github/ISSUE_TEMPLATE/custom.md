@@ -1,31 +1,21 @@
 ---
-name: Custom issue template
-about: Describe this issue template's purpose here.
+name: Question / Discussion
+about: Ask a question or discuss an idea related to Zotero Named Annotations.
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-礼貌礼貌礼貌！没人想回复一个不礼貌、充满个人情绪的issue！无论插件产生任何问题，请一定要礼貌。
-这里没有淘宝客服，任何人帮助你不Ta的是义务。
+在提交之前请确认：
 
-请阅读下列文字后，删除全部内容，再书写您的问题：
+1. 您已阅读最新的 [README](https://github.com/OliverDudgeon/zotero-named-annotations#readme)。
+2. 您已安装最新的发布版本。
+3. 您已搜索过现有 issue，确认没有重复的问题。
 
-* 如您未阅读README，请阅读，如阅读后仍无法解决可以在此提问；
-* 在issue中搜索历史问题，如果有相似的问题，可以浏览是否已有解决方案；如果没有，可以在那里补充你的问题，不要重复问相同的问题；
-* 任何不礼貌、问题描述不全、很抽象的描述不会得到回复，会被直接关闭，关闭后您可以修改后reopen；
+请删除以上说明，并提供：
 
-频繁问到的问题：
-
-### 我的标签去哪里了？
-
-参照README，打开标题的列设置，将Tags打勾；或者选择显示标签列。
-
-### 如何关闭插件的某项功能？
-
-<https://github.com/MuiseDestiny/zotero-style/releases/tag/2.2.5>
-
-### 太卡了，怎么办？
-
-见上一条问题
+- 您想实现的目标或遇到的问题；
+- 复现步骤（如适用）；
+- 相关的 Zotero 版本、插件版本与操作系统；
+- 截图或录屏（若有助于说明问题）。

@@ -99,15 +99,19 @@ async function main() {
 
   await esbuild
     .build({
-      entryPoints: ["src/index.ts"],
+      entryPoints: {
+        index: "src/index.ts",
+        prefsPane: "src/prefsPane.ts",
+      },
       define: {
         __env__: `"${process.env.NODE_ENV}"`,
       },
       bundle: true,
-      outfile: path.join(buildDir, "addon/chrome/content/scripts/index.js"),
+      outdir: path.join(buildDir, "addon/chrome/content/scripts"),
+      entryNames: "[name]",
       // Don't turn minify on
       // minify: true,
-      target: "firefox60"
+      target: "firefox60",
     })
     .catch(() => process.exit(1));
 
@@ -124,7 +128,7 @@ async function main() {
       target: "firefox60"
     })
     .catch(() => process.exit(1));
-  
+
   console.log("[Build] Run esbuild OK");
 
   const replaceFrom = [
