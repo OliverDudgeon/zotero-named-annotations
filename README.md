@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="addon/chrome/content/icons/favicon.png" width="48" height="48" alt="Zotero Named Annotations icon" />
+  <img src="addon/chrome/content/icons/logo.svg" width="48" height="48" alt="Zotero Named Annotations icon" />
   <h1>Zotero Named Annotations</h1>
   <p>Add human-friendly names to Zotero's default PDF annotation colors and see them as tooltips while you work.</p>
   <p>

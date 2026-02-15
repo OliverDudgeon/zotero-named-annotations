@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="rounded-corners">
+      <rect x="0" y="0" width="512" height="512" rx="100" ry="100" />
+    </clipPath>
+
+    <linearGradient id="rainbow-diagonal" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F8DE7B" />
+      <stop offset="14.28%" style="stop-color:#F8DE7B" />
+      <stop offset="14.28%" style="stop-color:#FA9D9D" />
+      <stop offset="28.57%" style="stop-color:#FA9D9D" />
+      <stop offset="28.57%" style="stop-color:#9AC983" />
+      <stop offset="42.85%" style="stop-color:#9AC983" />
+      <stop offset="42.85%" style="stop-color:#85C4E8" />
+      <stop offset="57.14%" style="stop-color:#85C4E8" />
+      <stop offset="57.14%" style="stop-color:#C1B1E7" />
+      <stop offset="71.42%" style="stop-color:#C1B1E7" />
+      <stop offset="71.42%" style="stop-color:#EAA1EE" />
+      <stop offset="85.71%" style="stop-color:#EAA1EE" />
+      <stop offset="85.71%" style="stop-color:#F0BA85" />
+      <stop offset="100%" style="stop-color:#F0BA85" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="100" ry="100" fill="url(#rainbow-diagonal)" />
+</svg>

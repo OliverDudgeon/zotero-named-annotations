@@ -5,8 +5,10 @@
   "description": "__description__",
   "author": "__author__",
   "icons": {
-    "48": "chrome/content/icons/favicon@0.5x.png",
-    "96": "chrome/content/icons/favicon.png"
+    "48": "chrome/content/icons/logo-96x96.png",
+    "96": "chrome/content/icons/logo-96x96.png",
+    "192": "chrome/content/icons/logo-192x192.png",
+    "512": "chrome/content/icons/logo-512x512.png"
   },
   "applications": {
     "zotero": {

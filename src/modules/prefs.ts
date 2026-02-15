@@ -17,7 +17,7 @@ export async function registerPrefs(): Promise<void> {
       id: `${config.addonRef}-prefs`,
       src: `${rootURI}chrome/content/preferences.xhtml`,
       label: config.addonName,
-      image: `chrome://${config.addonRef}/content/icons/favicon@32x32.png`,
+      image: `chrome://${config.addonRef}/content/icons/logo-96x96.png`,
       scripts: [`chrome://${config.addonRef}/content/scripts/prefsPane.js`],
     } as _ZoteroTypes._PreferencePaneOption;
 
