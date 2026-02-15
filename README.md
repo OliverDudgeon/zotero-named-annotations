@@ -9,15 +9,13 @@
   </p>
 </div>
 
-With this plugin, colours can be given names. This way your highlight system can be surfaced, so you remember your system.
+With this plugin, colors can be given names. This way your highlight system can be surfaced, so you remember your system.
 
 ![Reader toolbar color picker displaying custom labels](select.png)
 
 Configure the names in the preferences window
 
 ![Preferences panel showing editable labels for each color](prefs.png)
-
-
 
 ## Usage
 
@@ -35,6 +33,10 @@ pnpm build-dev
 ```
 
 The project uses esbuild + TypeScript and the [zotero-plugin-toolkit](https://github.com/windingwind/zotero-plugin-toolkit). See `scripts/` for helper commands.
+
+## Credits
+
+Thank you to the contributors of [Ethereal Style](https://github.com/MuiseDestiny/zotero-style) for the original implementation of this. This plugin is simply a minimal implementation of the feature implement there.
 
 ## License
 
