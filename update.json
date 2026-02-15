@@ -3,7 +3,7 @@
     "zoteronamedannotations@oliverdudgeon.dev": {
       "updates": [
         {
-          "version": "1.0.1",
+          "version": "1.0.2",
           "update_link": "https://github.com/OliverDudgeon/zotero-named-annotations/releases/latest/download/zotero-named-annotations.xpi",
           "applications": {
             "gecko": {
@@ -12,7 +12,7 @@
           }
         },
         {
-          "version": "1.0.1",
+          "version": "1.0.2",
           "update_link": "https://github.com/OliverDudgeon/zotero-named-annotations/releases/latest/download/zotero-named-annotations.xpi",
           "applications": {
             "zotero": {
