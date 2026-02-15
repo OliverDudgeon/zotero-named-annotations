@@ -1,6 +1,6 @@
 {
   "name": "zotero-named-annotations",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Add custom names to Zotero's annotation colors and surface them in the reader.",
   "config": {
     "addonName": "Zotero Named Annotations",
