@@ -39,6 +39,9 @@ function copyFolderRecursiveSync(source, target) {
   if (fs.lstatSync(source).isDirectory()) {
     files = fs.readdirSync(source);
     files.forEach(function (file) {
+      if (file === ".DS_Store") {
+        return;
+      }
       var curSource = path.join(source, file);
       if (fs.lstatSync(curSource).isDirectory()) {
         copyFolderRecursiveSync(curSource, targetFolder);
@@ -95,7 +98,6 @@ async function main() {
   copyFolderRecursiveSync("addon", buildDir);
 
   copyFileSync("update-template.json", "update.json");
-  copyFileSync("update-template.rdf", "update.rdf");
 
   await esbuild
     .build({
@@ -112,20 +114,6 @@ async function main() {
       // Don't turn minify on
       // minify: true,
       target: "firefox60",
-    })
-    .catch(() => process.exit(1));
-
-  await esbuild
-    .build({
-      entryPoints: ["addon/prefs.js"],
-      define: {
-        __env__: `"${process.env.NODE_ENV}"`,
-      },
-      bundle: true,
-      outfile: path.join(buildDir, "addon/prefs.js"),
-      // Don't turn minify on
-      // minify: true,
-      target: "firefox60"
     })
     .catch(() => process.exit(1));
 
@@ -148,17 +136,11 @@ async function main() {
 
   const optionsAddon = {
     files: [
-      path.join(buildDir, "**/*.rdf"),
-      path.join(buildDir, "**/*.dtd"),
-      path.join(buildDir, "**/*.xul"),
       path.join(buildDir, "**/*.xhtml"),
       path.join(buildDir, "**/*.json"),
-      path.join(buildDir, "addon/prefs.js"),
-      path.join(buildDir, "addon/chrome.manifest"),
       path.join(buildDir, "addon/manifest.json"),
       path.join(buildDir, "addon/bootstrap.js"),
       "update.json",
-      "update.rdf",
     ],
     from: replaceFrom,
     to: replaceTo,

@@ -10,8 +10,6 @@ export interface AnnotationColorEntry extends AnnotationColorDefinition {
   label: string;
 }
 
-export type AnnotationLabelTuple = [string, string];
-
 export const PREF_BRANCH = `extensions.zotero.${config.addonRef}`;
 const COLOR_PREF_PREFIX = `${PREF_BRANCH}.colorNames`;
 
@@ -39,13 +37,6 @@ export function getColorEntries(): AnnotationColorEntry[] {
     ...color,
     label: getColorName(color.id),
   }));
-}
-
-export function buildOrderedLabelTuples(): AnnotationLabelTuple[] {
-  return DEFAULT_COLORS.map((color) => {
-    const label = getColorName(color.id).trim() || color.fallbackLabel;
-    return [label, normalizeHex(color.hex)];
-  });
 }
 
 export function buildHexToLabelMap(): Record<string, string> {

@@ -1,15 +1,25 @@
 import {
-  AnnotationLabelTuple,
+  DEFAULT_COLORS,
   buildHexToLabelMap,
-  buildOrderedLabelTuples,
+  getColorName,
   normalizeHex,
 } from "./annotationNames";
 
 const WINDOW_STATE_KEY = "__zoteroNamedAnnotationsState";
-const COLOR_SCRIPT_ID = "__zoteroNamedAnnotationsColors";
-const COLOR_SCRIPT_ATTR = "data-zotero-named-annotation-colors";
-const COLOR_PATCH_STATE_KEY = "__zoteroNamedAnnotationsColorPatch";
-const LEGACY_GLOBAL_KEY = "_annotationColors";
+
+// Fluent message IDs that the Zotero reader uses for the default annotation
+// colors. The reader's createColorContextMenu resolves them via
+// reader._getString(label), which delegates to the bundled FluentBundle.
+const FLUENT_COLOR_IDS: Record<string, string> = {
+  "#ffd400": "general-yellow",
+  "#ff6666": "general-red",
+  "#5fb236": "general-green",
+  "#2ea8e5": "general-blue",
+  "#a28ae5": "general-purple",
+  "#e56eee": "general-magenta",
+  "#f19837": "general-orange",
+  "#aaaaaa": "general-gray",
+};
 
 type ReaderWindow = Window & typeof globalThis & {
   [WINDOW_STATE_KEY]?: ReaderWindowState;
@@ -57,8 +67,8 @@ export function applyColorNamesToReader(reader: _ZoteroTypes.ReaderInstance): vo
   teardownWindowState(win);
 
   const colorMap = buildHexToLabelMap();
-  const orderedTuples = buildOrderedLabelTuples();
-  injectAnnotationColorOverrides(win, orderedTuples);
+  installGetStringPatch(win, reader, buildFluentOverrides());
+
   const applyTooltips = () => annotatePalette(win, colorMap);
   applyTooltips();
 
@@ -111,102 +121,108 @@ function annotatePalette(win: Window, colorMap: Record<string, string>) {
   });
 }
 
-function injectAnnotationColorOverrides(
-  win: ReaderWindow,
-  tuples: AnnotationLabelTuple[]
-): void {
-  const doc = win.document;
-  if (!doc) {
-    return;
+function buildFluentOverrides(): Record<string, string> {
+  const overrides: Record<string, string> = {};
+  for (const color of DEFAULT_COLORS) {
+    const hex = normalizeHex(color.hex);
+    const fluentId = FLUENT_COLOR_IDS[hex];
+    if (!fluentId) {
+      continue;
+    }
+    const label = getColorName(color.id).trim();
+    if (label) {
+      overrides[fluentId] = label;
+    }
   }
-  const serialized = JSON.stringify(tuples);
-  const existingScript = doc.getElementById(COLOR_SCRIPT_ID);
-  const scriptMatches = existingScript?.getAttribute(COLOR_SCRIPT_ATTR) === serialized;
-  if (!scriptMatches) {
-    existingScript?.remove();
-    const script = doc.createElement("script");
-    script.id = COLOR_SCRIPT_ID;
-    script.type = "text/javascript";
-    script.setAttribute(COLOR_SCRIPT_ATTR, serialized);
-    script.textContent = buildColorOverrideSource(serialized);
-    const appendTarget = doc.head || doc.documentElement || doc.body;
-    appendTarget?.appendChild(script);
-  }
-
-  setLegacyWindowColors(win, tuples);
+  return overrides;
 }
 
-function buildColorOverrideSource(serializedTuples: string): string {
-  return `
-    (function() {
-      const STATE_KEY = "${COLOR_PATCH_STATE_KEY}";
-      const DATA = ${serializedTuples};
-      const HEX_PATTERN = /^#[0-9a-f]{6}$/i;
-
-      const normalize = (tuple) => [
-        String(tuple[0] || ""),
-        String(tuple[1] || "").toLowerCase()
-      ];
-
-      const normalized = Array.isArray(DATA) ? DATA.map(normalize) : [];
-
-      const isAnnotationTuple = (value) =>
-        Array.isArray(value) &&
-        value.length === 2 &&
-        typeof value[0] === "string" &&
-        typeof value[1] === "string" &&
-        HEX_PATTERN.test(value[1]);
-
-      const shouldPatch = (value) =>
-        Array.isArray(value) &&
-        value.length > 0 &&
-        value.every(isAnnotationTuple);
-
-      if (window[STATE_KEY] && typeof window[STATE_KEY].cleanup === "function") {
-        window[STATE_KEY].cleanup();
-      }
-
-      const originalMap = Array.prototype.map;
-
-      const patched = function() {
-        if (shouldPatch(this)) {
-          this.length = normalized.length;
-          for (let i = 0; i < normalized.length; i++) {
-            this[i] = [normalized[i][0], normalized[i][1]];
-          }
-        }
-        return originalMap.apply(this, arguments);
-      };
-
-      const cleanup = () => {
-        if (Array.prototype.map === patched) {
-          Array.prototype.map = originalMap;
-        }
-        window.removeEventListener("unload", cleanup);
-        delete window[STATE_KEY];
-      };
-
-      Array.prototype.map = patched;
-      window[STATE_KEY] = { cleanup };
-      window.addEventListener("unload", cleanup, { once: true });
-    })();
-  `;
-}
-
-function setLegacyWindowColors(
+// Override _getString on the internal Reader so context-menu.js's
+// `colors.map(([label, color]) => ({ label: reader._getString(label), ... }))`
+// returns our custom labels. Patches both the live instance (so the change
+// is visible immediately on a refresh) and window.createReader (so future
+// reader instances created in this window get the patch too).
+function installGetStringPatch(
   win: ReaderWindow,
-  tuples: AnnotationLabelTuple[]
+  reader: _ZoteroTypes.ReaderInstance,
+  fluentOverrides: Record<string, string>
 ): void {
   try {
-    const sanitized = JSON.stringify(tuples);
-    if (typeof win.eval === "function") {
-      win.eval(`window.${LEGACY_GLOBAL_KEY} = ${sanitized}`);
-    } else {
-      (win as any)[LEGACY_GLOBAL_KEY] = tuples;
+    const evalFn = (win as any).eval;
+    if (typeof evalFn === "function") {
+      evalFn(buildGetStringPatchSource(JSON.stringify(fluentOverrides)));
     }
   } catch (error) {
     logError(error);
   }
+
+  try {
+    const internalReader = (reader as any)?._internalReader;
+    if (
+      internalReader &&
+      typeof internalReader._getString === "function" &&
+      !internalReader.__zoteroNamedAnnotationsPatched
+    ) {
+      const original = internalReader._getString.bind(internalReader);
+      internalReader.__zoteroNamedAnnotationsOverrides = fluentOverrides;
+      internalReader._getString = function (name: string, args: unknown) {
+        const o = internalReader.__zoteroNamedAnnotationsOverrides || {};
+        if (name && Object.prototype.hasOwnProperty.call(o, name)) {
+          return o[name];
+        }
+        return original(name, args);
+      };
+      internalReader.__zoteroNamedAnnotationsPatched = true;
+    } else if (internalReader?.__zoteroNamedAnnotationsPatched) {
+      // Refresh the override table so live edits take effect without
+      // recreating the patch closure.
+      internalReader.__zoteroNamedAnnotationsOverrides = fluentOverrides;
+    }
+  } catch (error) {
+    logError(error);
+  }
+}
+
+function buildGetStringPatchSource(serializedOverrides: string): string {
+  return `
+    (function() {
+      const overrides = ${serializedOverrides};
+      const FLAG = "__zoteroNamedAnnotationsPatched";
+
+      function patch(reader) {
+        if (!reader) return;
+        if (reader[FLAG]) {
+          reader.__zoteroNamedAnnotationsOverrides = overrides;
+          return;
+        }
+        if (typeof reader._getString !== "function") return;
+        const original = reader._getString.bind(reader);
+        reader.__zoteroNamedAnnotationsOverrides = overrides;
+        reader._getString = function (name, args) {
+          const o = reader.__zoteroNamedAnnotationsOverrides || {};
+          if (name && Object.prototype.hasOwnProperty.call(o, name)) {
+            return o[name];
+          }
+          return original(name, args);
+        };
+        reader[FLAG] = true;
+      }
+
+      if (window._reader) {
+        patch(window._reader);
+      }
+      if (typeof window.createReader === "function" && !window.createReader.__zoteroNamedAnnotationsHooked) {
+        const orig = window.createReader;
+        const hooked = function (options) {
+          const reader = orig.call(this, options);
+          patch(window._reader || reader);
+          return reader;
+        };
+        hooked.__zoteroNamedAnnotationsHooked = true;
+        window.createReader = hooked;
+      }
+    })();
+  `;
 }
 
 function collectColorButtons(doc: Document): HTMLElement[] {

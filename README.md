@@ -17,10 +17,12 @@ Configure the names in the preferences window
 
 ![Preferences panel showing editable labels for each color](prefs.png)
 
+Requires Zotero 7 or newer (tested on Zotero 9).
+
 ## Usage
 
 1. Install the latest `.xpi` from the [releases page](https://github.com/OliverDudgeon/zotero-named-annotations/releases/latest).
-2. Open `Zotero ▸ Settings ▸ Zotero Named Annotations` on Zotero 7 (or `Zotero ▸ Preferences ▸ Zotero Named Annotations` on Zotero 6).
+2. Open `Zotero ▸ Settings ▸ Zotero Named Annotations`.
 3. Type a short description next to any color swatch (e.g., “Key claims”).
 4. Switch to the PDF reader and open the annotation color picker—the tooltip now matches your label.
 
