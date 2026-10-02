@@ -232,6 +232,7 @@ function collectColorButtons(doc: Document): HTMLElement[] {
     "button.annotation-color",
     "button[class*='annotation-toolbar-color']",
     "button.grid-tile",
+    "button.color-button",
   ];
   const nodes = new Set<HTMLElement>();
   selectors.forEach((selector) => {
@@ -245,7 +246,11 @@ function collectColorButtons(doc: Document): HTMLElement[] {
 }
 
 function extractColorHex(win: Window, element: HTMLElement): string | null {
-  const colorAttr = element.getAttribute("data-color") || element.getAttribute("color");
+  // Zotero 10's selection popup draws the swatch as an <svg><path fill>.
+  const colorAttr =
+    element.getAttribute("data-color") ||
+    element.getAttribute("color") ||
+    element.querySelector("svg path[fill^='#']")?.getAttribute("fill");
   if (colorAttr) {
     return normalizeHex(colorAttr);
   }
