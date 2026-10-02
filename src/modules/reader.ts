@@ -67,7 +67,7 @@ export function applyColorNamesToReader(reader: _ZoteroTypes.ReaderInstance): vo
   teardownWindowState(win);
 
   const colorMap = buildHexToLabelMap();
-  installGetStringPatch(win, reader, buildFluentOverrides());
+  installGetStringPatch(win, buildFluentOverrides());
 
   const applyTooltips = () => annotatePalette(win, colorMap);
   applyTooltips();
@@ -139,45 +139,17 @@ function buildFluentOverrides(): Record<string, string> {
 
 // Override _getString on the internal Reader so context-menu.js's
 // `colors.map(([label, color]) => ({ label: reader._getString(label), ... }))`
-// returns our custom labels. Patches both the live instance (so the change
-// is visible immediately on a refresh) and window.createReader (so future
-// reader instances created in this window get the patch too).
+// returns our custom labels. The patch is eval'd inside the reader frame:
+// functions and objects created here are opaque to the frame's code, so
+// assigning them directly makes the overrides read as {}.
 function installGetStringPatch(
   win: ReaderWindow,
-  reader: _ZoteroTypes.ReaderInstance,
   fluentOverrides: Record<string, string>
 ): void {
   try {
-    const evalFn = (win as any).eval;
-    if (typeof evalFn === "function") {
-      evalFn(buildGetStringPatchSource(JSON.stringify(fluentOverrides)));
-    }
-  } catch (error) {
-    logError(error);
-  }
-
-  try {
-    const internalReader = (reader as any)?._internalReader;
-    if (
-      internalReader &&
-      typeof internalReader._getString === "function" &&
-      !internalReader.__zoteroNamedAnnotationsPatched
-    ) {
-      const original = internalReader._getString.bind(internalReader);
-      internalReader.__zoteroNamedAnnotationsOverrides = fluentOverrides;
-      internalReader._getString = function (name: string, args: unknown) {
-        const o = internalReader.__zoteroNamedAnnotationsOverrides || {};
-        if (name && Object.prototype.hasOwnProperty.call(o, name)) {
-          return o[name];
-        }
-        return original(name, args);
-      };
-      internalReader.__zoteroNamedAnnotationsPatched = true;
-    } else if (internalReader?.__zoteroNamedAnnotationsPatched) {
-      // Refresh the override table so live edits take effect without
-      // recreating the patch closure.
-      internalReader.__zoteroNamedAnnotationsOverrides = fluentOverrides;
-    }
+    ((win as any).wrappedJSObject ?? win).eval(
+      buildGetStringPatchSource(JSON.stringify(fluentOverrides))
+    );
   } catch (error) {
     logError(error);
   }
@@ -292,11 +264,7 @@ function getReaderWindow(reader: _ZoteroTypes.ReaderInstance): ReaderWindow | un
     internalReader?._lastView?._iframeWindow,
   ];
 
-  for (const candidate of possibleWindows) {
-    if (candidate) {
-      return (candidate.wrappedJSObject as ReaderWindow) || candidate;
-    }
-  }
-
-  return undefined;
+  // Return the Xray (not wrappedJSObject) so DOM calls like
+  // MutationObserver.observe receive our option objects intact.
+  return possibleWindows.find(Boolean);
 }
